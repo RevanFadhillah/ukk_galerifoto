@@ -1,0 +1,84 @@
+body {
+    height: 100vh; /* Mengatur tinggi untuk seluruh viewport */
+    margin: 0; /* Menghilangkan margin default */
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #e94560, #ff6f61);
+    background-size: 500% 500%; /* Mengatur ukuran latar belakang */
+    animation: gradient 15s ease infinite; /* Menambahkan animasi */
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+  .container {
+    overflow: hidden;
+}
+
+.animated-text {
+    margin-top: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    color: #61dafb;
+    opacity: 0;
+    transform: translateY(50px);
+    animation: fadeInUp 1s forwards;
+    animation-delay: 0.5s; /* Delay before the animation starts */
+}
+
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+ 
+  .btn-modern {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            color: whitesmoke;
+            background-color: blue;
+            text-decoration: none;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background : transparent;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            z-index: 0;
+        }
+
+        .btn-modern:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .btn-modern:hover {
+            color:black;
+            background-color: #fff;
+        }
+
+        .btn-modern span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        
