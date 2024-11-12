@@ -1,13 +1,17 @@
 <?php
 session_start();
 include '../config/koneksi.php';
-if ($_SESSION['status'] != 'login') {
+if (!isset($_SESSION['username']) || $_SESSION['role'] != 'user') {
   echo "<script>
-    alert ('Anda Belum Login');
-    location.href='../index.php';
-    </script>";
+          alert('Anda belum login atau bukan user');
+          location.href='../login.php'; // Redirect ke halaman login
+        </script>";
+  exit();
 }
-
+$id_user = $_SESSION['id_user'];
+$query_user = mysqli_query($koneksi, "SELECT nama FROM user WHERE id_user = '$id_user'");
+$user_data = mysqli_fetch_array($query_user);
+$user_name = $user_data['nama'];
 ?>
 
 <!DOCTYPE html>
@@ -41,7 +45,10 @@ if ($_SESSION['status'] != 'login') {
     <a class="nav-link text-white" href="foto.php"><i class="fa fa-image"></i> Foto</a>
 </li>
       </ul>
-      <a href="../config/aksi_logout.php" class="btn btn-outline-danger ml-2">Keluar</a>
+      <span class="navbar-text text-white ms-3">
+          hallo <?php echo $user_name; ?>
+        </span>
+      <a href="../config/aksi_logout.php" class="btn btn-outline-danger ml-2 ms-4">Keluar</a>
     </div>
   </div>
 </nav>

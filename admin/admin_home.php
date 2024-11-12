@@ -2,19 +2,20 @@
 session_start();
 $id_user = $_SESSION['id_user'];
 include '../config/koneksi.php';
-if (!isset($_SESSION['username']) || $_SESSION['role'] != 'user') {
+if (!isset($_SESSION['username']) || $_SESSION['role'] != 'admin') {
     echo "<script>
-            alert('Anda belum login atau bukan user');
+            alert('Anda belum login atau bukan admin');
             location.href='../login.php'; // Redirect ke halaman login
           </script>";
     exit();
 }
-$id_user = $_SESSION['id_user'];
+
+
+// Ambil nama pengguna dari database
 $query_user = mysqli_query($koneksi, "SELECT nama FROM user WHERE id_user = '$id_user'");
 $user_data = mysqli_fetch_array($query_user);
 $user_name = $user_data['nama'];
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -28,15 +29,18 @@ $user_name = $user_data['nama'];
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-dark">
     <div class="container">
-        <a class="navbar-brand text-white" href="index.php"><i class="fa fa-camera-retro"></i> Website Galeri Foto</a>
+        <a class="navbar-brand text-white" href="admin_index.php"><i class="fa fa-camera-retro"></i> Website Galeri Foto</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link text-white" href="home.php"><i class="fa fa-home"></i> Home</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="album.php"><i class="fa fa-folder-open"></i> Album</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="foto.php"><i class="fa fa-image"></i> Foto</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="admin_home.php"><i class="fa fa-home"></i> Home</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="admin_album.php"><i class="fa fa-folder-open"></i> Album</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="admin_foto.php"><i class="fa fa-image"></i> Foto</a></li>
+                <li class="nav-item">
+            <a class="nav-link text-white" href="admin_pengguna.php"><i class="fa fa-user"></i> User</a>
+          </li>
             </ul>
             <span class="navbar-text text-white ms-3">
           hallo <?php echo $user_name; ?>
@@ -52,7 +56,7 @@ $user_name = $user_data['nama'];
     <?php
     $album = mysqli_query($koneksi, "SELECT * FROM album WHERE id_user='$id_user'");
     while ($row = mysqli_fetch_array($album)) { ?>
-        <a href="home.php?id_album=<?php echo $row['id_album'] ?>" class="btn btn-outline-primary"><?php echo $row['nama_album'] ?></a>
+        <a href="admin_home.php?id_album=<?php echo $row['id_album'] ?>" class="btn btn-outline-primary"><?php echo $row['nama_album'] ?></a>
     <?php } ?>
 
     <div class="row">

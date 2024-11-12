@@ -2,14 +2,16 @@
 session_start();
 $id_user = $_SESSION['id_user'];
 include '../config/koneksi.php';
-if (!isset($_SESSION['username']) || $_SESSION['role'] != 'user') {
+if (!isset($_SESSION['username']) || $_SESSION['role'] != 'admin') {
     echo "<script>
-            alert('Anda belum login atau bukan user');
+            alert('Anda belum login atau bukan admin');
             location.href='../login.php'; // Redirect ke halaman login
           </script>";
     exit();
 }
-$id_user = $_SESSION['id_user'];
+
+
+// Ambil nama pengguna dari database
 $query_user = mysqli_query($koneksi, "SELECT nama FROM user WHERE id_user = '$id_user'");
 $user_data = mysqli_fetch_array($query_user);
 $user_name = $user_data['nama'];
@@ -30,21 +32,24 @@ $user_name = $user_data['nama'];
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-dark">
   <div class="container">
-    <a class="navbar-brand text-white" href="index.php"><i class="fa fa-camera-retro"></i> Website Galeri Foto</a>
+    <a class="navbar-brand text-white" href="admin_index.php"><i class="fa fa-camera-retro"></i> Website Galeri Foto</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
       <li class="nav-item">
-    <a class="nav-link text-white" href="home.php"><i class="fa fa-home"></i> Home</a>
+    <a class="nav-link text-white" href="admin_home.php"><i class="fa fa-home"></i> Home</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link text-white" href="album.php"><i class="fa fa-folder-open"></i> Album</a>
+    <a class="nav-link text-white" href="admin_album.php"><i class="fa fa-folder-open"></i> Album</a>
 </li>
 <li class="nav-item">
-    <a class="nav-link text-white" href="foto.php"><i class="fa fa-image"></i> Foto</a>
+    <a class="nav-link text-white" href="admin_foto.php"><i class="fa fa-image"></i> Foto</a>
 </li>
+<li class="nav-item">
+            <a class="nav-link text-white" href="admin_pengguna.php"><i class="fa fa-user"></i> User</a>
+          </li>
       </ul>
       <span class="navbar-text text-white ms-3">
           hallo <?php echo $user_name; ?>
@@ -63,7 +68,7 @@ $user_name = $user_data['nama'];
       <h5 class="mb-0">Tambah Foto</h5>
     </div>
     <div class="card-body">
-      <form action="../config/aksi_foto.php" method="POST" enctype="multipart/form-data">
+      <form action="../config/aksi_admin_foto.php" method="POST" enctype="multipart/form-data">
 
         <div class="mb-3">
           <label for="judul_foto" class="form-label">Judul Foto</label>
@@ -112,6 +117,7 @@ $user_name = $user_data['nama'];
                         <th>Foto</th>
                         <th>Judul Foto</th>
                         <th>Deskripsi</th>
+                        <th>Pengguna</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -119,8 +125,8 @@ $user_name = $user_data['nama'];
                 <tbody>
                     <?php
                     $no = 1;
-                    $id_user = $_SESSION['id_user'];
-                    $sql = mysqli_query($koneksi, "SELECT * FROM foto WHERE id_user='$id_user'");
+                    // Query untuk admin menampilkan foto dari semua pengguna
+                    $sql = mysqli_query($koneksi, "SELECT * FROM foto INNER JOIN user ON foto.id_user=user.id_user");
                     while ($data = mysqli_fetch_array($sql)) {
                     ?>
                         <tr>
@@ -128,12 +134,12 @@ $user_name = $user_data['nama'];
                             <td><img src="../assets/img/<?php echo $data['lokasi_file'] ?>" width="100px" class="img-thumbnail"></td>
                             <td><?php echo $data['judul_foto'] ?></td>
                             <td><?php echo $data['deskripsi_foto'] ?></td>
+                            <td><?php echo $data['nama'] ?></td> <!-- Menampilkan nama pengguna yang mengunggah foto -->
                             <td><?php echo $data['tanggal_unggah'] ?></td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#edit<?php echo $data['id_foto'] ?>">
                                     Edit
                                 </button>
-
                                 <div class="modal fade" id="edit<?php echo $data['id_foto'] ?>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -142,7 +148,7 @@ $user_name = $user_data['nama'];
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="../config/aksi_foto.php" method="POST" enctype="multipart/form-data">
+                <form action="../config/admin_aksi_foto.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="id_foto" value="<?php echo $data['id_foto'] ?>">
 
                     <div class="mb-4">
@@ -202,7 +208,7 @@ $user_name = $user_data['nama'];
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form action="../config/aksi_foto.php" method="POST">
+                                                <form action="../config/aksi_admin_foto.php" method="POST">
                                                     <input type="hidden" name="id_foto" value="<?php echo $data['id_foto'] ?>">
                                                     Apakah Anda yakin ingin menghapus foto <strong><?php echo $data['judul_foto'] ?></strong>?
                                             </div>
@@ -221,6 +227,7 @@ $user_name = $user_data['nama'];
         </div>
     </div>
 </div>
+
 
         </div>
     </div>

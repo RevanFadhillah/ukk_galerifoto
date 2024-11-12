@@ -1,41 +1,83 @@
 <?php
 session_start();
-include '../config/koneksi.php';
+include 'koneksi.php'; // Koneksi ke database
 
-// Pastikan pengguna sudah login
-if ($_SESSION['status'] != 'login') {
-    echo "<script>alert('Anda Belum Login'); location.href='../home.php';</script>";
-    exit;
+// Cek apakah user sudah login
+if (!isset($_SESSION['username'])) {
+    echo "<script>
+            alert('Anda belum login.');
+            location.href='../login.php'; // Redirect ke halaman login
+          </script>";
+    exit(); // Pastikan eksekusi berhenti setelah redirect
 }
 
-// Ambil id komentar yang akan dihapus dan id foto terkait
-$id_komentar = $_GET['id_komentar'];
-$id_foto = $_GET['id_foto'];
-$id_user = $_SESSION['id_user'];  // ID pengguna yang sedang login
+$id_komentar = isset($_GET['id_komentar']) ? $_GET['id_komentar'] : null;
+$id_foto = isset($_GET['id_foto']) ? $_GET['id_foto'] : null;
 
-// Cek apakah komentar dengan id_komentar ada dan milik pengguna yang tepat
-$cek_komentar = mysqli_query($koneksi, "SELECT * FROM komentar_foto WHERE id_komentar='$id_komentar'");
-$komentar_data = mysqli_fetch_array($cek_komentar);
+// Pastikan id_komentar dan id_foto ada di URL
+if ($id_komentar && $id_foto) {
+    // Sanitasi input untuk mencegah SQL Injection
+    $id_komentar = mysqli_real_escape_string($koneksi, $id_komentar);
+    $id_foto = mysqli_real_escape_string($koneksi, $id_foto);
 
-// Jika komentar ditemukan, lanjutkan pengecekan hak akses
-if ($komentar_data) {
-    // Cek apakah yang login adalah pemilik foto atau pemilik komentar
-    $foto_owner = mysqli_fetch_array(mysqli_query($koneksi, "SELECT id_user FROM foto WHERE id_foto = '$id_foto'"));
+    // Ambil data komentar untuk memeriksa pemiliknya
+    $query = "SELECT id_user FROM komentar_foto WHERE id_komentar = '$id_komentar' AND id_foto = '$id_foto'";
+    $result = mysqli_query($koneksi, $query);
     
-    if ($foto_owner['id_user'] == $_SESSION['id_user'] || $komentar_data['id_user'] == $_SESSION['id_user']) {
-        // Hapus komentar
-        $hapus_komentar = mysqli_query($koneksi, "DELETE FROM komentar_foto WHERE id_komentar='$id_komentar'");
+    if (mysqli_num_rows($result) > 0) {
+        $comment_data = mysqli_fetch_assoc($result);
+        $comment_owner_id = $comment_data['id_user'];
         
-        if ($hapus_komentar) {
-            echo "<script>alert('Komentar berhasil dihapus'); location.href='../admin/home.php?id_album=$id_foto';</script>";
+        // Admin dapat menghapus komentar dari siapa pun, sementara user hanya bisa menghapus komentar mereka sendiri
+        if ($_SESSION['role'] == 'admin' || $_SESSION['id_user'] == $comment_owner_id) {
+            // Query untuk menghapus komentar berdasarkan ID
+            $query_delete = "DELETE FROM komentar_foto WHERE id_komentar = '$id_komentar' AND id_foto = '$id_foto'";
+            
+            if (mysqli_query($koneksi, $query_delete)) {
+                // Jika berhasil, redirect ke halaman yang sesuai
+                if ($_SESSION['role'] == 'admin') {
+                    // Jika admin, redirect ke halaman admin
+                    echo "<script>
+                            alert('Komentar berhasil dihapus.');
+                            location.href='../admin/admin_index.php'; // Redirect ke halaman admin
+                          </script>";
+                } else {
+                    // Jika user biasa, redirect ke halaman user
+                    echo "<script>
+                            alert('Komentar berhasil dihapus.');
+                            location.href='../admin/index.php'; // Redirect ke halaman user
+                          </script>";
+                }
+                exit(); // Hentikan eksekusi lebih lanjut setelah redirect
+            } else {
+                // Jika gagal menghapus, tampilkan pesan error
+                echo "<script>
+                        alert('Gagal menghapus komentar.');
+                        location.href='../admin/index.php'; // Kembali ke halaman admin
+                      </script>";
+                exit();
+            }
         } else {
-            echo "<script>alert('Gagal menghapus komentar'); location.href='../admin/home.php?id_album=$id_foto';</script>";
+            // Jika user mencoba menghapus komentar yang bukan miliknya
+            echo "<script>
+                    alert('Anda tidak memiliki hak untuk menghapus komentar ini.');
+                    location.href='../admin/index.php'; // Kembali ke halaman admin
+                  </script>";
+            exit();
         }
     } else {
-        // Jika pengguna tidak memiliki hak untuk menghapus komentar
-        echo "<script>alert('Anda tidak memiliki hak untuk menghapus komentar ini'); location.href='../admin/home.php';</script>";
+        echo "<script>
+                alert('Komentar tidak ditemukan.');
+                location.href='../admin/index.php'; // Kembali ke halaman admin
+              </script>";
+        exit();
     }
 } else {
-    echo "<script>alert('Komentar tidak ditemukan'); location.href='../admin/home.php';</script>";
+    // Jika tidak ada ID komentar atau ID foto yang diberikan
+    echo "<script>
+            alert('ID komentar atau ID foto tidak ditemukan.');
+            location.href='../admin/index.php'; // Kembali ke halaman admin
+          </script>";
+    exit();
 }
 ?>
